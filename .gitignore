@@ -17,20 +17,24 @@ USER.md
 VOICE.md
 *.md
 
-# Blueprint drafts
+# Blueprint drafts (keep private)
 blueprint-ch*.md
-blueprint-landing/
+blueprint-chapters-*.md
 business-setup/
 business-setup-status.md
 content-strategy.md
+filing-checklist-email.txt
+
+# Deployment files (allow these)
+!blueprint-landing.html
+!blueprint-delivery.html
+!api/
+!api/*.js
+!package.json
+!vercel.json
 
 # System files
 .DS_Store
 node_modules/
 .env
 .env.local
-
-# Keep deployment files
-!deployment-guide.md
-!vercel.json
-!README.md
