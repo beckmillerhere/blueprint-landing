@@ -198,28 +198,40 @@
         
         // Handle checkout button clicks
         async function handleCheckout() {
+            // Check if we're in placeholder mode (real Stripe key not configured yet)
+            const isPlaceholder = stripe._apiKey === 'pk_test_PLACEHOLDER_REPLACE_WITH_REAL_KEY';
+            
+            if (isPlaceholder) {
+                alert('Stripe Checkout integration ready!\n\nNext steps:\n1. Get Stripe API keys from Elena\n2. Add STRIPE_SECRET_KEY to Vercel environment variables\n3. Replace placeholder key in HTML\n\nSee deployment-guide.md for details.');
+                return;
+            }
+            
             try {
-                // TODO: Replace this with your backend endpoint that creates the Stripe Checkout Session
-                // For now, this is a placeholder that shows what needs to happen:
-                // 1. Call your backend API endpoint (e.g., /api/create-checkout-session)
-                // 2. Backend creates Stripe Checkout Session with the product details
-                // 3. Backend returns the session ID
-                // 4. Frontend redirects to Stripe Checkout using session ID
+                // Call backend serverless function to create checkout session
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(PRODUCT_CONFIG)
+                });
                 
-                // PLACEHOLDER BACKEND CALL:
-                // const response = await fetch('/api/create-checkout-session', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(PRODUCT_CONFIG)
-                // });
-                // const session = await response.json();
-                // const result = await stripe.redirectToCheckout({ sessionId: session.id });
+                if (!response.ok) {
+                    throw new Error('Failed to create checkout session');
+                }
                 
-                alert('Stripe Checkout integration ready!\n\nNext steps:\n1. Get Stripe API keys from Elena\n2. Set up backend endpoint to create checkout sessions\n3. Replace placeholder key and endpoint URL\n\nSee deployment-guide.md for details.');
+                const session = await response.json();
+                
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({ 
+                    sessionId: session.id 
+                });
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
                 
             } catch (error) {
                 console.error('Checkout error:', error);
-                alert('Something went wrong. Please try again.');
+                alert('Something went wrong. Please try again or contact support.');
             }
         }
         
