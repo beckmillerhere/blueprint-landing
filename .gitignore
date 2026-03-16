@@ -1,0 +1,36 @@
+# OpenClaw workspace files
+.openclaw/
+.clawhub/
+memory/
+skills/
+
+# Workspace docs (keep private)
+AGENTS.md
+BOOT.md
+HEARTBEAT.md
+IDENTITY.md
+MEMORY.md
+NICHE_STRATEGY.md
+SOUL.md
+TOOLS.md
+USER.md
+VOICE.md
+*.md
+
+# Blueprint drafts
+blueprint-ch*.md
+blueprint-landing/
+business-setup/
+business-setup-status.md
+content-strategy.md
+
+# System files
+.DS_Store
+node_modules/
+.env
+.env.local
+
+# Keep deployment files
+!deployment-guide.md
+!vercel.json
+!README.md
