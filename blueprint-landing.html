@@ -6,153 +6,243 @@
     <title>The Beck Miller Blueprint</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'warm-white': '#FAFAF8',
+                        'cognac': '#8B4513',
+                        'gold': '#D4AF37',
+                    },
+                    fontFamily: {
+                        'serif': ['EB Garamond', 'Georgia', 'serif'],
+                        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                    spacing: {
+                        '18': '4.5rem',
+                        '22': '5.5rem',
+                        '30': '7.5rem',
+                        '40': '10rem',
+                    },
+                }
+            }
+        }
+    </script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #FAFAF8;
+            color: #000000;
         }
         
-        .transformation-card {
-            transition: all 0.3s ease;
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
         }
         
-        .transformation-card:hover {
-            transform: translateY(-4px);
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .hairline {
+            height: 1px;
+            background: #8B4513;
+            opacity: 0.3;
+        }
+        
+        .cta-button {
+            transition: transform 0.15s ease-out;
+        }
+        
+        .cta-button:active {
+            transform: scale(0.98);
+        }
+        
+        .cta-gold:hover {
+            box-shadow: 0 0 0 1px #D4AF37;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .link-underline {
+            position: relative;
+        }
+        
+        .link-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: currentColor;
+            transition: width 0.15s ease-out;
+        }
+        
+        .link-underline:hover::after {
+            width: 100%;
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body>
     
     <!-- Hero Section -->
-    <div class="min-h-screen flex items-center justify-center px-4 py-16 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-        <div class="max-w-4xl mx-auto text-center">
-            <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-                The Beck Miller<br>Blueprint
+    <section class="bg-black text-warm-white min-h-screen flex flex-col justify-center items-center px-6 py-20">
+        <div class="max-w-3xl mx-auto text-center">
+            <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl mb-12 fade-in" style="letter-spacing: -0.02em; line-height: 1.1;">
+                The Beck Miller Blueprint
             </h1>
-            <p class="text-xl md:text-2xl text-gray-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-                Stop building what you think you should build.<br>Start building what only you can build.
+            
+            <p class="font-sans text-lg md:text-xl mb-40 fade-in max-w-2xl mx-auto" style="line-height: 1.6;">
+                Built a billion-dollar company. Lost $5M. Rebuilt from scratch.<br>
+                Now: $1M revenue, zero employees, complete freedom.
             </p>
-            <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-                With AI doing the work you hate.
-            </p>
-            <button id="checkout-button-hero" class="inline-block bg-white text-purple-900 font-semibold px-10 py-5 rounded-lg text-lg hover:bg-gray-100 transition shadow-2xl cursor-pointer border-none">
-                Get The Blueprint — $49
+            
+            <button id="checkout-button-hero" class="cta-button inline-block bg-warm-white text-black font-sans font-semibold px-8 py-4 rounded-lg text-lg hover:bg-opacity-90 transition shadow-xl cursor-pointer border-none fade-in">
+                Your turn — $49
             </button>
         </div>
-    </div>
+    </section>
 
     <!-- What This Actually Is -->
-    <div class="max-w-4xl mx-auto px-4 py-20">
-        <h2 class="text-4xl md:text-5xl font-bold mb-8">What This Actually Is</h2>
-        
-        <div class="prose prose-lg max-w-none space-y-6 text-gray-700 leading-relaxed">
-            <p class="text-xl">
-                I've built billion-dollar companies. I've gone bankrupt. I've lost $5M and rebuilt from scratch. I've been 250 lbs wondering if I could finish a jog, and I've run marathons.
-            </p>
+    <section class="bg-warm-white py-24 md:py-30 px-6">
+        <div class="max-w-xl mx-auto">
+            <h2 class="font-serif text-4xl md:text-5xl mb-12 text-center fade-in">What This Actually Is</h2>
             
-            <p class="text-xl">
-                Every single time I started over, I got clearer. Every reinvention brought me closer to something real.
-            </p>
-            
-            <p class="text-xl">
-                The Beck Miller Blueprint is what I learned along the way. It's how I run a business that does real revenue with zero employees — because I combined deep lived wisdom with AI execution.
-            </p>
-            
-            <p class="text-xl font-semibold text-gray-900">
-                Passion before productivity. Clarity before strategy. Soul before scale.
-            </p>
+            <div class="space-y-6 text-lg md:text-xl font-serif fade-in" style="line-height: 1.7;">
+                <p>
+                    I've built billion-dollar companies. I've gone bankrupt. I've lost $5M and rebuilt from scratch. I've been 250 lbs wondering if I could finish a jog, and I've run marathons.
+                </p>
+                
+                <p>
+                    Every single time I started over, I got clearer. Every reinvention brought me closer to something real.
+                </p>
+                
+                <p>
+                    The Beck Miller Blueprint is what I learned along the way. It's how I run a business that does real revenue with zero employees — because I combined deep lived wisdom with AI execution.
+                </p>
+                
+                <p class="font-semibold pt-4">
+                    Passion before productivity. Clarity before strategy. Soul before scale.
+                </p>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- The 5 Transformations -->
-    <div class="bg-white py-20">
-        <div class="max-w-6xl mx-auto px-4">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4 text-center">What You'll Actually Get</h2>
-            <p class="text-xl text-gray-600 mb-16 text-center">Five transformations that justify every dollar of the $49.</p>
+    <!-- Transformations Section -->
+    <section class="bg-warm-white py-24 md:py-30 px-6">
+        <div class="max-w-xl mx-auto">
+            <h2 class="font-serif text-4xl md:text-5xl mb-16 text-center fade-in">What You'll Actually Get</h2>
             
-            <div class="grid md:grid-cols-2 gap-8">
+            <div class="space-y-12">
                 
                 <!-- Transformation 1 -->
-                <div class="transformation-card bg-gray-50 p-8 rounded-lg border-l-4 border-purple-600">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">1. Break Free from Autopilot</h3>
-                    <div class="space-y-3">
-                        <p class="text-gray-700"><span class="font-semibold">From:</span> Waking up with dread, going through the motions, feeling numb.</p>
-                        <p class="text-gray-700"><span class="font-semibold">To:</span> Deeply connected to what fascinates you, building what you actually want.</p>
-                        <p class="text-sm text-purple-700 font-medium">Chapter 1: The "Oh god" moment → Chapter 5: The Grinder Coffee Lab</p>
-                    </div>
+                <div class="fade-in">
+                    <h3 class="font-sans font-semibold text-2xl md:text-3xl mb-4">1. Break Free from Autopilot</h3>
+                    <p class="font-serif text-lg md:text-xl mb-12" style="line-height: 1.7;">
+                        You wake up with dread. Same day on repeat. Numb. This shows you how to reconnect with what fascinates you—and build your business from that, not from obligation.
+                    </p>
+                    <div class="hairline mx-auto" style="width: 80%;"></div>
                 </div>
 
                 <!-- Transformation 2 -->
-                <div class="transformation-card bg-gray-50 p-8 rounded-lg border-l-4 border-purple-600">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">2. Master Starting Over</h3>
-                    <div class="space-y-3">
-                        <p class="text-gray-700"><span class="font-semibold">From:</span> Terrified of failure, stuck in the wrong thing.</p>
-                        <p class="text-gray-700"><span class="font-semibold">To:</span> Starting over as a competitive advantage. Rebuilding stronger every time.</p>
-                        <p class="text-sm text-purple-700 font-medium">My $5M bankruptcy → building again with complete clarity</p>
-                    </div>
+                <div class="fade-in">
+                    <h3 class="font-sans font-semibold text-2xl md:text-3xl mb-4 pt-12">2. Master Starting Over</h3>
+                    <p class="font-serif text-lg md:text-xl mb-12" style="line-height: 1.7;">
+                        Bankruptcy taught me: starting over isn't failure. It's a competitive advantage. Most people are stuck in the wrong thing because they're terrified to restart. You'll learn to rebuild stronger every time.
+                    </p>
+                    <div class="hairline mx-auto" style="width: 80%;"></div>
                 </div>
 
                 <!-- Transformation 3 -->
-                <div class="transformation-card bg-gray-50 p-8 rounded-lg border-l-4 border-purple-600">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">3. Build a One-Person Business That Makes Money</h3>
-                    <div class="space-y-3">
-                        <p class="text-gray-700"><span class="font-semibold">From:</span> Trading time for money, needing a team, capped income.</p>
-                        <p class="text-gray-700"><span class="font-semibold">To:</span> $1M revenue with zero employees using AI leverage.</p>
-                        <p class="text-sm text-purple-700 font-medium">Chapter 11: Real numbers. Chapter 13: The exact path.</p>
-                    </div>
+                <div class="fade-in">
+                    <h3 class="font-sans font-semibold text-2xl md:text-3xl mb-4 pt-12">3. $1M Revenue, Zero Employees</h3>
+                    <p class="font-serif text-lg md:text-xl mb-12" style="line-height: 1.7;">
+                        Most solopreneurs hit a ceiling because they can't scale without hiring. AI changes that. This shows you the exact model I use to run a real business—products, customers, revenue—with no team, no overhead, no cap.
+                    </p>
+                    <div class="hairline mx-auto" style="width: 80%;"></div>
                 </div>
 
                 <!-- Transformation 4 -->
-                <div class="transformation-card bg-gray-50 p-8 rounded-lg border-l-4 border-purple-600">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">4. Find the Intersection</h3>
-                    <div class="space-y-3">
-                        <p class="text-gray-700"><span class="font-semibold">From:</span> Copying what works for others. Generic positioning.</p>
-                        <p class="text-gray-700"><span class="font-semibold">To:</span> Building from what you uniquely know + experienced + love.</p>
-                        <p class="text-sm text-purple-700 font-medium">The exact framework. What only you can build.</p>
-                    </div>
+                <div class="fade-in">
+                    <h3 class="font-sans font-semibold text-2xl md:text-3xl mb-4 pt-12">4. Find the Intersection</h3>
+                    <p class="font-serif text-lg md:text-xl mb-12" style="line-height: 1.7;">
+                        Copying what works for others gets you generic positioning and a business that feels borrowed. This framework shows you how to build from what you uniquely know, experienced, and love. What only you can build.
+                    </p>
+                    <div class="hairline mx-auto" style="width: 80%;"></div>
                 </div>
 
                 <!-- Transformation 5 -->
-                <div class="transformation-card bg-gray-50 p-8 rounded-lg border-l-4 border-purple-600">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">5. Ship Your First Product in 24 Hours</h3>
-                    <div class="space-y-3">
-                        <p class="text-gray-700"><span class="font-semibold">From:</span> Analysis paralysis. Perfect-before-launch. Never shipping.</p>
-                        <p class="text-gray-700"><span class="font-semibold">To:</span> Idea → Stripe checkout → first sale in one day.</p>
-                        <p class="text-sm text-purple-700 font-medium">Chapter 9: Step-by-step. The pattern I used to build this.</p>
-                    </div>
+                <div class="fade-in">
+                    <h3 class="font-sans font-semibold text-2xl md:text-3xl mb-4 pt-12">5. Ship Your First Product in 24 Hours</h3>
+                    <p class="font-serif text-lg md:text-xl" style="line-height: 1.7;">
+                        Analysis paralysis. Perfect-before-launch. Never shipping. This is the step-by-step pattern I used to go from idea to Stripe checkout to first sale in one day. The exact same process I used to build this.
+                    </p>
                 </div>
 
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Social Proof Section -->
+    <section class="bg-warm-white py-24 md:py-30 px-6">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="font-serif text-3xl md:text-4xl mb-16 text-center fade-in max-w-xl mx-auto">The Resume You Can't Fake</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8 mb-12 fade-in text-center">
+                <div>
+                    <p class="font-sans text-base opacity-60">Built billion-dollar companies</p>
+                </div>
+                <div>
+                    <p class="font-sans text-base opacity-60">Lost $5M, rebuilt from scratch</p>
+                </div>
+                <div>
+                    <p class="font-sans text-base opacity-60">$1M revenue, zero employees</p>
+                </div>
+            </div>
+            
+            <p class="font-serif text-lg md:text-xl text-center max-w-2xl mx-auto fade-in" style="line-height: 1.7;">
+                I don't teach theory. I teach what I've lived through. Every strategy in this blueprint comes from years of building, losing, and building again. That's the difference.
+            </p>
+        </div>
+    </section>
 
     <!-- Pricing / CTA -->
-    <div class="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h2 class="text-4xl md:text-5xl font-bold mb-6">Get The Blueprint</h2>
-        <p class="text-2xl text-gray-700 mb-8">
-            The operating system for building a business that reflects who you actually are.
-        </p>
-        <div class="bg-white border-2 border-purple-600 rounded-xl p-8 max-w-md mx-auto mb-8">
-            <div class="text-5xl font-bold text-purple-900 mb-2">$49</div>
-            <div class="text-gray-600 mb-6">One-time payment. Instant access.</div>
-            <button id="checkout-button-pricing" class="w-full bg-purple-900 text-white font-semibold px-8 py-4 rounded-lg text-lg hover:bg-purple-800 transition cursor-pointer border-none">
+    <section class="bg-black text-warm-white py-30 md:py-40 px-6">
+        <div class="max-w-2xl mx-auto text-center">
+            <div class="text-7xl md:text-8xl font-serif mb-6 fade-in" style="color: #D4AF37;">$49</div>
+            
+            <p class="font-sans text-lg mb-12 fade-in" style="opacity: 0.4;">
+                One payment. Instant access. 13 chapters.<br>
+                Philosophy + System + Proof.
+            </p>
+            
+            <button id="checkout-button-pricing" class="cta-button cta-gold inline-block font-sans font-semibold px-10 py-5 rounded-lg text-xl cursor-pointer border-none mb-6 fade-in" style="background: #D4AF37; color: #000000;">
                 Get The Blueprint
             </button>
+            
+            <p class="font-sans text-base fade-in" style="opacity: 0.6;">
+                No upsells. No subscriptions. Just the operating system<br class="hidden md:block">
+                for building a business that reflects who you actually are.
+            </p>
         </div>
-        <p class="text-gray-600">
-            13 chapters. Philosophy + System + Proof. No fluff. Just what works.
-        </p>
-    </div>
+    </section>
 
-    <!-- What's Inside (Chapters - Buried) -->
-    <div class="bg-gray-100 py-16">
-        <div class="max-w-4xl mx-auto px-4">
-            <details class="bg-white rounded-lg p-6">
-                <summary class="text-2xl font-bold text-gray-900 cursor-pointer">Full Chapter Breakdown</summary>
-                <div class="mt-6 space-y-3 text-gray-700">
-                    <p><strong>Part 1: The Philosophy (Why)</strong></p>
-                    <ul class="list-disc list-inside space-y-2 ml-4">
+    <!-- What's Inside (Chapters) -->
+    <section class="bg-warm-white py-16 px-6">
+        <div class="max-w-3xl mx-auto">
+            <details class="bg-white rounded-lg p-8 shadow-sm">
+                <summary class="text-2xl font-sans font-semibold cursor-pointer">Full Chapter Breakdown</summary>
+                <div class="mt-8 space-y-4 font-sans text-base" style="line-height: 1.6;">
+                    <p class="font-semibold">Part 1: The Philosophy (Why)</p>
+                    <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
                         <li>Chapter 1: The Autopilot Trap</li>
                         <li>Chapter 2: Starting Over as a Superpower</li>
                         <li>Chapter 3: Passion Before Productivity</li>
@@ -160,8 +250,8 @@
                         <li>Chapter 5: Awake Moments</li>
                     </ul>
                     
-                    <p class="pt-4"><strong>Part 2: The System (How)</strong></p>
-                    <ul class="list-disc list-inside space-y-2 ml-4">
+                    <p class="pt-4 font-semibold">Part 2: The System (How)</p>
+                    <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
                         <li>Chapter 6: The AI Leverage Model</li>
                         <li>Chapter 7: Your Tech Stack</li>
                         <li>Chapter 8: Setting Up Your AI Agent</li>
@@ -169,8 +259,8 @@
                         <li>Chapter 10: The Content Machine</li>
                     </ul>
                     
-                    <p class="pt-4"><strong>Part 3: The Proof (What)</strong></p>
-                    <ul class="list-disc list-inside space-y-2 ml-4">
+                    <p class="pt-4 font-semibold">Part 3: The Proof (What)</p>
+                    <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
                         <li>Chapter 11: My Real Numbers</li>
                         <li>Chapter 12: The Daily Operating Cadence</li>
                         <li>Chapter 13: The $1M Path</li>
@@ -178,23 +268,36 @@
                 </div>
             </details>
         </div>
-    </div>
+    </section>
 
     <!-- Final CTA -->
-    <div class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-20">
-        <div class="max-w-3xl mx-auto px-4 text-center">
-            <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
+    <section class="bg-black text-warm-white py-20 md:py-30 px-6">
+        <div class="max-w-2xl mx-auto text-center">
+            <h2 class="font-serif text-4xl md:text-5xl mb-8 fade-in">
                 Your story isn't over.
             </h2>
-            <p class="text-xl text-gray-300 mb-10">
+            <p class="font-sans text-lg md:text-xl mb-12 fade-in" style="line-height: 1.6; opacity: 0.9;">
                 Whether you're starting over, stuck on autopilot, or ready to build something that actually reflects who you are — this is the blueprint.
             </p>
-            <button id="checkout-button-final" class="inline-block bg-white text-purple-900 font-semibold px-10 py-5 rounded-lg text-lg hover:bg-gray-100 transition shadow-2xl cursor-pointer border-none">
-                Get The Blueprint — $49
+            <button id="checkout-button-final" class="cta-button inline-block bg-warm-white text-black font-sans font-semibold px-10 py-5 rounded-lg text-lg hover:bg-opacity-90 transition shadow-xl cursor-pointer border-none fade-in">
+                Start rebuilding — $49
             </button>
         </div>
-    </div>
+    </section>
 
+    <!-- Footer -->
+    <footer class="bg-black text-warm-white py-12 px-6">
+        <div class="max-w-4xl mx-auto text-center">
+            <p class="font-sans text-sm mb-3" style="opacity: 0.4;">
+                Beck Miller is a pseudonym. The experiences are real.
+            </p>
+            <p class="font-sans text-xs" style="opacity: 0.3;">
+                Built with soul. Executed with AI.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Stripe Integration (Same as Original) -->
     <script>
         const STRIPE_PUBLISHABLE_KEY = 'pk_test_PLACEHOLDER_REPLACE_WITH_REAL_KEY';
         const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
@@ -228,6 +331,26 @@
                     console.error('Checkout error:', error);
                     alert('Something went wrong. Please try again.');
                 }
+            });
+        });
+        
+        // Scroll Animation (Intersection Observer)
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
             });
         });
     </script>
