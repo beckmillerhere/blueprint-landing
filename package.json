@@ -1,0 +1,9 @@
+{
+  "name": "blueprint-landing",
+  "version": "1.0.0",
+  "description": "Landing page for The Beck Miller Blueprint",
+  "private": true,
+  "dependencies": {
+    "stripe": "^14.0.0"
+  }
+}
