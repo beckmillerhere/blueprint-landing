@@ -6,6 +6,9 @@
     <title>The Beck Miller Blueprint</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -16,7 +19,7 @@
                 extend: {
                     colors: {
                         'warm-white': '#FAFAF8',
-                        'cognac': '#8B4513',
+                        'cognac': '#BC8B5F',
                         'gold': '#D4AF37',
                     },
                     fontFamily: {
@@ -37,42 +40,94 @@
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #FAFAF8;
-            color: #000000;
+            background: #000000;
+            color: #FAFAF8;
+        }
+        
+        /* Noise texture overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: multiply;
+        }
+        
+        /* Three.js Canvas */
+        #hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* GSAP Animation Classes */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
         }
         
         .fade-in {
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
         }
         
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.8);
         }
         
+        /* Hairline dividers */
         .hairline {
             height: 1px;
-            background: #8B4513;
+            background: #BC8B5F;
             opacity: 0.3;
+            max-width: 80%;
+            margin: 0 auto;
         }
         
+        /* Button styles */
         .cta-button {
-            transition: transform 0.15s ease-out;
+            transition: all 0.25s cubic-bezier(0.33, 1, 0.68, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
         }
         
         .cta-button:active {
-            transform: scale(0.98);
+            transform: translateY(0);
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
         }
         
-        .cta-gold:hover {
-            box-shadow: 0 0 0 1px #D4AF37;
-            transition: box-shadow 0.3s ease;
+        .cta-button-gold {
+            background: #D4AF37;
+            color: #000000;
         }
         
+        .cta-button-white {
+            background: #FAFAF8;
+            color: #000000;
+        }
+        
+        /* Link underline animation */
         .link-underline {
             position: relative;
+            display: inline-block;
         }
         
         .link-underline::after {
@@ -83,141 +138,103 @@
             width: 0;
             height: 1px;
             background: currentColor;
-            transition: width 0.15s ease-out;
+            transition: width 0.25s ease-out;
         }
         
         .link-underline:hover::after {
             width: 100%;
         }
         
-        /* Hero background pattern */
-        .hero-bg {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-bg::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                linear-gradient(45deg, transparent 48%, rgba(139, 69, 19, 0.03) 49%, rgba(139, 69, 19, 0.03) 51%, transparent 52%),
-                linear-gradient(-45deg, transparent 48%, rgba(139, 69, 19, 0.03) 49%, rgba(139, 69, 19, 0.03) 51%, transparent 52%);
-            background-size: 100px 100px;
-            opacity: 0.3;
-        }
-        
-        /* Transformation card icons */
+        /* Transformation icons */
         .transform-icon {
-            width: 48px;
-            height: 48px;
+            width: 80px;
+            height: 80px;
             margin-bottom: 1.5rem;
-            opacity: 0.9;
         }
         
-        /* Process diagram styling */
-        .process-arrow {
+        .transform-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .transform-card:hover .transform-icon {
+            animation: wiggle 0.4s ease-in-out;
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+        }
+        
+        /* Revenue chart animation */
+        .chart-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+        }
+        
+        /* Process arrows */
+        .process-stage {
             position: relative;
-        }
-        
-        .process-arrow::after {
-            content: '';
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 40px;
-            background: linear-gradient(to bottom, #D4AF37, transparent);
         }
         
         @media (min-width: 768px) {
-            .process-arrow::after {
-                width: 60px;
-                height: 2px;
-                bottom: auto;
+            .process-stage:not(:last-child)::after {
+                content: '→';
+                position: absolute;
+                right: -2rem;
                 top: 50%;
-                left: 100%;
                 transform: translateY(-50%);
-                background: linear-gradient(to right, #D4AF37, transparent);
+                font-size: 2rem;
+                color: #D4AF37;
+                opacity: 0.6;
             }
         }
         
-        /* Revenue dashboard mockup */
-        .dashboard-mockup {
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            #hero-canvas {
+                display: none;
+            }
         }
         
-        .metric-bar {
-            height: 8px;
-            background: linear-gradient(90deg, #D4AF37 0%, #8B4513 100%);
-            border-radius: 4px;
-            animation: grow 2s ease-out forwards;
-            transform-origin: left;
-        }
-        
-        @keyframes grow {
-            from { transform: scaleX(0); }
-            to { transform: scaleX(1); }
-        }
-        
-        /* Geometric background elements */
-        .bg-geometric {
-            position: absolute;
+        /* Grid pattern for social proof */
+        .grid-pattern {
+            background-image: 
+                linear-gradient(#BC8B5F 1px, transparent 1px),
+                linear-gradient(90deg, #BC8B5F 1px, transparent 1px);
+            background-size: 40px 40px;
             opacity: 0.03;
-            pointer-events: none;
         }
     </style>
 </head>
 <body>
     
-    <!-- Hero Section -->
-    <section class="hero-bg bg-black text-warm-white min-h-screen flex flex-col justify-center items-center px-6 py-20">
-        <!-- Abstract geometric shapes -->
-        <svg class="bg-geometric" style="top: 10%; left: 5%;" width="200" height="200" viewBox="0 0 200 200">
-            <circle cx="100" cy="100" r="80" stroke="#D4AF37" stroke-width="2" fill="none" opacity="0.5"/>
-            <circle cx="100" cy="100" r="60" stroke="#8B4513" stroke-width="2" fill="none" opacity="0.3"/>
-        </svg>
+    <!-- Noise texture overlay -->
+    <div class="noise-overlay"></div>
+    
+    <!-- Hero Section with Three.js -->
+    <section class="relative bg-black text-warm-white min-h-screen flex flex-col justify-center items-center px-6 overflow-hidden">
+        <!-- Three.js Canvas -->
+        <canvas id="hero-canvas"></canvas>
         
-        <svg class="bg-geometric" style="bottom: 15%; right: 8%;" width="150" height="150" viewBox="0 0 150 150">
-            <rect x="25" y="25" width="100" height="100" stroke="#D4AF37" stroke-width="2" fill="none" opacity="0.4" transform="rotate(45 75 75)"/>
-        </svg>
-        
-        <div class="max-w-3xl mx-auto text-center relative z-10">
-            <!-- Hero visual: Blueprint grid icon -->
-            <div class="mb-12 fade-in flex justify-center">
-                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Grid pattern representing blueprint -->
-                    <rect x="10" y="10" width="100" height="100" stroke="#D4AF37" stroke-width="1.5" fill="none" opacity="0.4"/>
-                    <line x1="10" y1="35" x2="110" y2="35" stroke="#D4AF37" stroke-width="0.5" opacity="0.3"/>
-                    <line x1="10" y1="60" x2="110" y2="60" stroke="#D4AF37" stroke-width="0.5" opacity="0.3"/>
-                    <line x1="10" y1="85" x2="110" y2="85" stroke="#D4AF37" stroke-width="0.5" opacity="0.3"/>
-                    <line x1="35" y1="10" x2="35" y2="110" stroke="#D4AF37" stroke-width="0.5" opacity="0.3"/>
-                    <line x1="60" y1="10" x2="60" y2="110" stroke="#D4AF37" stroke-width="0.5" opacity="0.3"/>
-                    <line x1="85" y1="10" x2="85" y2="110" stroke="#D4AF37" stroke-width="0.5" opacity="0.3"/>
-                    <!-- Rising arrow representing growth -->
-                    <path d="M 30 90 L 50 70 L 70 75 L 90 50" stroke="#FAFAF8" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M 90 50 L 85 58 M 90 50 L 82 55" stroke="#FAFAF8" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
-            </div>
-            
-            <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl mb-12 fade-in" style="letter-spacing: -0.02em; line-height: 1.1;">
+        <!-- Hero Content -->
+        <div class="hero-content max-w-3xl mx-auto text-center">
+            <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl mb-12 fade-in-up" style="letter-spacing: -0.02em; line-height: 1.1;">
                 The Beck Miller Blueprint
             </h1>
             
-            <p class="font-sans text-lg md:text-xl mb-40 fade-in max-w-2xl mx-auto" style="line-height: 1.6;">
+            <p class="font-sans text-lg md:text-xl mb-40 fade-in-up max-w-2xl mx-auto" style="line-height: 1.6;">
                 Built a billion-dollar company. Lost $5M. Rebuilt from scratch.<br>
                 Now: $1M revenue, zero employees, complete freedom.
             </p>
             
-            <button id="checkout-button-hero" class="cta-button inline-block bg-warm-white text-black font-sans font-semibold px-8 py-4 rounded-lg text-lg hover:bg-opacity-90 transition shadow-xl cursor-pointer border-none fade-in">
+            <button id="checkout-button-hero" class="cta-button cta-button-white inline-block font-sans font-semibold px-8 py-4 rounded-lg text-lg cursor-pointer border-none fade-in-up">
                 Your turn — $49
             </button>
         </div>
@@ -226,9 +243,9 @@
     <!-- What This Actually Is -->
     <section class="bg-warm-white py-24 md:py-30 px-6">
         <div class="max-w-xl mx-auto">
-            <h2 class="font-serif text-4xl md:text-5xl mb-12 text-center fade-in">What This Actually Is</h2>
+            <h2 class="font-serif text-4xl md:text-5xl mb-12 text-center text-black fade-in-up">What This Actually Is</h2>
             
-            <div class="space-y-6 text-lg md:text-xl font-serif fade-in" style="line-height: 1.7;">
+            <div class="space-y-6 text-lg md:text-xl font-serif text-black fade-in-up" style="line-height: 1.7;">
                 <p>
                     I've built billion-dollar companies. I've gone bankrupt. I've lost $5M and rebuilt from scratch. I've been 250 lbs wondering if I could finish a jog, and I've run marathons.
                 </p>
@@ -248,83 +265,117 @@
         </div>
     </section>
 
-    <!-- Transformations Section with Icons -->
+    <!-- Transformations Section with Custom Icons -->
     <section class="bg-warm-white py-24 md:py-30 px-6">
         <div class="max-w-4xl mx-auto">
-            <h2 class="font-serif text-4xl md:text-5xl mb-16 text-center fade-in">What You'll Actually Get</h2>
+            <h2 class="font-serif text-4xl md:text-5xl mb-16 text-center text-black fade-in-up">What You'll Actually Get</h2>
             
-            <div class="grid md:grid-cols-2 gap-x-16 gap-y-12">
+            <div class="space-y-16">
                 
                 <!-- Transformation 1: Break Free -->
-                <div class="fade-in">
-                    <svg class="transform-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Broken chain icon -->
-                        <path d="M18 22L22 26M26 22L22 26M22 26L18 30M22 26L26 30" stroke="#8B4513" stroke-width="2" stroke-linecap="round"/>
-                        <rect x="10" y="18" width="12" height="16" rx="2" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                        <rect x="26" y="14" width="12" height="16" rx="2" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                <div class="transform-card fade-in-up text-center md:text-left">
+                    <svg class="transform-icon mx-auto md:mx-0" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Circular loop breaking into forward arrows -->
+                        <path d="M40 12 A 18 18 0 1 1 39.9 12" stroke="#BC8B5F" stroke-width="2" fill="none"/>
+                        <path d="M58 40 L 68 40 L 64 36 M 68 40 L 64 44" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M60 50 L 70 50 L 66 46 M 70 50 L 66 54" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                        <path d="M62 60 L 72 60 L 68 56 M 72 60 L 68 64" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                        <circle cx="58" cy="40" r="3" fill="#D4AF37"/>
                     </svg>
-                    <h3 class="font-sans font-semibold text-2xl mb-3">Break Free from Autopilot</h3>
-                    <p class="font-serif text-lg" style="line-height: 1.7; opacity: 0.85;">
+                    <h3 class="font-sans font-semibold text-2xl mb-3 text-black">Break Free from Autopilot</h3>
+                    <p class="font-serif text-lg text-black max-w-xl mx-auto md:mx-0" style="line-height: 1.7; opacity: 0.85;">
                         You wake up with dread. Same day on repeat. Numb. This shows you how to reconnect with what fascinates you—and build your business from that, not from obligation.
                     </p>
                 </div>
 
+                <div class="hairline"></div>
+
                 <!-- Transformation 2: Master Starting Over -->
-                <div class="fade-in">
-                    <svg class="transform-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Phoenix rising / restart icon -->
-                        <path d="M24 8C24 8 16 12 16 20C16 24 18 26 20 28C18 30 16 32 16 36C16 40 20 44 24 44C28 44 32 40 32 36C32 32 30 30 28 28C30 26 32 24 32 20C32 12 24 8 24 8Z" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                        <path d="M24 8V4M20 10L18 7M28 10L30 7" stroke="#8B4513" stroke-width="2" stroke-linecap="round"/>
+                <div class="transform-card fade-in-up text-center md:text-left">
+                    <svg class="transform-icon mx-auto md:mx-0" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Phoenix transformation: dissolving to forming -->
+                        <g opacity="0.4">
+                            <path d="M 20 60 L 22 58 L 20 56 M 24 62 L 26 60 L 24 58 M 28 64 L 30 62 L 28 60" stroke="#BC8B5F" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                        <g>
+                            <circle cx="34" cy="50" r="1.5" fill="#BC8B5F" opacity="0.6"/>
+                            <circle cx="38" cy="46" r="1.5" fill="#BC8B5F" opacity="0.7"/>
+                            <circle cx="42" cy="42" r="1.5" fill="#D4AF37" opacity="0.8"/>
+                            <circle cx="46" cy="38" r="1.5" fill="#D4AF37" opacity="0.9"/>
+                        </g>
+                        <path d="M 50 30 L 54 26 L 58 30 L 54 34 Z" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                        <path d="M 54 26 L 54 18 M 50 22 L 54 18 L 58 22" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <h3 class="font-sans font-semibold text-2xl mb-3">Master Starting Over</h3>
-                    <p class="font-serif text-lg" style="line-height: 1.7; opacity: 0.85;">
+                    <h3 class="font-sans font-semibold text-2xl mb-3 text-black">Master Starting Over</h3>
+                    <p class="font-serif text-lg text-black max-w-xl mx-auto md:mx-0" style="line-height: 1.7; opacity: 0.85;">
                         Bankruptcy taught me: starting over isn't failure. It's a competitive advantage. Most people are stuck in the wrong thing because they're terrified to restart. You'll learn to rebuild stronger every time.
                     </p>
                 </div>
 
+                <div class="hairline"></div>
+
                 <!-- Transformation 3: $1M Revenue -->
-                <div class="fade-in">
-                    <svg class="transform-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Growth chart icon -->
-                        <path d="M8 40L16 32L24 36L32 24L40 28" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M40 28L40 20M40 28L32 28" stroke="#8B4513" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="16" cy="32" r="2" fill="#D4AF37"/>
-                        <circle cx="24" cy="36" r="2" fill="#D4AF37"/>
-                        <circle cx="32" cy="24" r="2" fill="#D4AF37"/>
-                        <circle cx="40" cy="28" r="2" fill="#D4AF37"/>
+                <div class="transform-card fade-in-up text-center md:text-left">
+                    <svg class="transform-icon mx-auto md:mx-0" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Single point radiating into structured blocks -->
+                        <circle cx="40" cy="40" r="4" fill="#BC8B5F"/>
+                        <line x1="40" y1="40" x2="40" y2="15" stroke="#BC8B5F" stroke-width="2"/>
+                        <line x1="40" y1="40" x2="62" y2="24" stroke="#BC8B5F" stroke-width="2"/>
+                        <line x1="40" y1="40" x2="65" y2="40" stroke="#BC8B5F" stroke-width="2"/>
+                        <line x1="40" y1="40" x2="62" y2="56" stroke="#BC8B5F" stroke-width="2"/>
+                        <line x1="40" y1="40" x2="40" y2="65" stroke="#BC8B5F" stroke-width="2"/>
+                        <line x1="40" y1="40" x2="18" y2="56" stroke="#BC8B5F" stroke-width="2"/>
+                        <line x1="40" y1="40" x2="15" y2="40" stroke="#BC8B5F" stroke-width="2"/>
+                        <line x1="40" y1="40" x2="18" y2="24" stroke="#BC8B5F" stroke-width="2"/>
+                        <rect x="36" y="10" width="8" height="8" fill="#D4AF37" opacity="0.8"/>
+                        <rect x="58" y="20" width="8" height="8" fill="#D4AF37" opacity="0.7"/>
+                        <rect x="61" y="36" width="8" height="8" fill="#D4AF37" opacity="0.7"/>
+                        <rect x="58" y="52" width="8" height="8" fill="#D4AF37" opacity="0.6"/>
+                        <rect x="11" y="36" width="8" height="8" fill="#D4AF37" opacity="0.6"/>
                     </svg>
-                    <h3 class="font-sans font-semibold text-2xl mb-3">$1M Revenue, Zero Employees</h3>
-                    <p class="font-serif text-lg" style="line-height: 1.7; opacity: 0.85;">
+                    <h3 class="font-sans font-semibold text-2xl mb-3 text-black">$1M Revenue, Zero Employees</h3>
+                    <p class="font-serif text-lg text-black max-w-xl mx-auto md:mx-0" style="line-height: 1.7; opacity: 0.85;">
                         Most solopreneurs hit a ceiling because they can't scale without hiring. AI changes that. This shows you the exact model I use to run a real business—products, customers, revenue—with no team, no overhead, no cap.
                     </p>
                 </div>
 
+                <div class="hairline"></div>
+
                 <!-- Transformation 4: Find Intersection -->
-                <div class="fade-in">
-                    <svg class="transform-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Venn diagram intersection -->
-                        <circle cx="20" cy="24" r="14" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                        <circle cx="28" cy="24" r="14" stroke="#8B4513" stroke-width="2" fill="none"/>
-                        <path d="M24 14L24 34" stroke="#D4AF37" stroke-width="1.5" opacity="0.6"/>
+                <div class="transform-card fade-in-up text-center md:text-left">
+                    <svg class="transform-icon mx-auto md:mx-0" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Two paths converging at glowing point -->
+                        <path d="M 10 20 Q 20 35, 40 40" stroke="#BC8B5F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 70 60 Q 60 45, 40 40" stroke="#D4AF37" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <circle cx="40" cy="40" r="6" fill="#D4AF37" opacity="0.3"/>
+                        <circle cx="40" cy="40" r="4" fill="#D4AF37" opacity="0.6"/>
+                        <circle cx="40" cy="40" r="2" fill="#D4AF37"/>
                     </svg>
-                    <h3 class="font-sans font-semibold text-2xl mb-3">Find the Intersection</h3>
-                    <p class="font-serif text-lg" style="line-height: 1.7; opacity: 0.85;">
+                    <h3 class="font-sans font-semibold text-2xl mb-3 text-black">Find the Intersection</h3>
+                    <p class="font-serif text-lg text-black max-w-xl mx-auto md:mx-0" style="line-height: 1.7; opacity: 0.85;">
                         Copying what works for others gets you generic positioning and a business that feels borrowed. This framework shows you how to build from what you uniquely know, experienced, and love. What only you can build.
                     </p>
                 </div>
 
+                <div class="hairline"></div>
+
                 <!-- Transformation 5: Ship Fast -->
-                <div class="fade-in md:col-span-2 max-w-lg mx-auto">
-                    <svg class="transform-icon mx-auto" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Rocket icon -->
-                        <path d="M24 4C24 4 32 8 32 20L32 36L24 40L16 36L16 20C16 8 24 4 24 4Z" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                        <path d="M16 24L10 28L10 34L16 32" stroke="#8B4513" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M32 24L38 28L38 34L32 32" stroke="#8B4513" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="24" cy="20" r="3" fill="#D4AF37"/>
-                        <path d="M20 40L24 44L28 40" stroke="#8B4513" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <div class="transform-card fade-in-up text-center md:text-left">
+                    <svg class="transform-icon mx-auto md:mx-0" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Spark to packaged product -->
+                        <g transform="translate(15, 30)">
+                            <path d="M 8 5 L 10 10 L 5 8 L 10 13 L 8 8 L 13 10 Z" fill="#D4AF37"/>
+                            <circle cx="8" cy="8" r="10" fill="#D4AF37" opacity="0.1"/>
+                        </g>
+                        <line x1="30" y1="40" x2="45" y2="40" stroke="#BC8B5F" stroke-width="2" stroke-dasharray="2 2"/>
+                        <g transform="translate(45, 30)">
+                            <path d="M 0 0 L 20 0 L 20 20 L 0 20 Z" stroke="#BC8B5F" stroke-width="2" fill="none"/>
+                            <path d="M 0 0 L 5 -5 L 25 -5 L 20 0 Z" stroke="#BC8B5F" stroke-width="2" fill="#D4AF37" opacity="0.3"/>
+                            <path d="M 20 0 L 25 -5 L 25 15 L 20 20 Z" stroke="#BC8B5F" stroke-width="2" fill="#BC8B5F" opacity="0.2"/>
+                        </g>
                     </svg>
-                    <h3 class="font-sans font-semibold text-2xl mb-3 text-center">Ship Your First Product in 24 Hours</h3>
-                    <p class="font-serif text-lg text-center" style="line-height: 1.7; opacity: 0.85;">
+                    <h3 class="font-sans font-semibold text-2xl mb-3 text-black">Ship Your First Product in 24 Hours</h3>
+                    <p class="font-serif text-lg text-black max-w-xl mx-auto md:mx-0" style="line-height: 1.7; opacity: 0.85;">
                         Analysis paralysis. Perfect-before-launch. Never shipping. This is the step-by-step pattern I used to go from idea to Stripe checkout to first sale in one day. The exact same process I used to build this.
                     </p>
                 </div>
@@ -336,56 +387,49 @@
     <!-- Process Diagram Section -->
     <section class="bg-black text-warm-white py-24 md:py-30 px-6">
         <div class="max-w-5xl mx-auto">
-            <h2 class="font-serif text-4xl md:text-5xl mb-20 text-center fade-in">The Journey</h2>
+            <h2 class="font-serif text-4xl md:text-5xl mb-20 text-center fade-in-up">The Journey</h2>
             
-            <div class="grid md:grid-cols-4 gap-8 md:gap-4">
+            <div class="grid md:grid-cols-4 gap-12 md:gap-6">
                 
                 <!-- Stage 1: Autopilot -->
-                <div class="fade-in text-center process-arrow">
-                    <div class="mb-6 flex justify-center">
-                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="32" cy="32" r="28" stroke="#8B4513" stroke-width="2" fill="none" opacity="0.5"/>
-                            <circle cx="32" cy="32" r="4" fill="#8B4513" opacity="0.8"/>
-                        </svg>
-                    </div>
+                <div class="fade-in-up text-center process-stage">
+                    <svg class="mx-auto mb-6" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="32" cy="32" r="24" stroke="#BC8B5F" stroke-width="2" fill="none" opacity="0.5"/>
+                        <circle cx="32" cy="32" r="16" stroke="#BC8B5F" stroke-width="2" fill="none" opacity="0.3"/>
+                        <circle cx="32" cy="32" r="4" fill="#BC8B5F" opacity="0.8"/>
+                    </svg>
                     <h3 class="font-sans font-semibold text-xl mb-3">Autopilot</h3>
                     <p class="font-sans text-sm opacity-70">Going through the motions. Numb. Stuck.</p>
                 </div>
                 
                 <!-- Stage 2: Awakening -->
-                <div class="fade-in text-center process-arrow">
-                    <div class="mb-6 flex justify-center">
-                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="32" cy="32" r="28" stroke="#D4AF37" stroke-width="2" fill="none" opacity="0.6"/>
-                            <path d="M32 20L36 28L44 28L38 34L40 42L32 38L24 42L26 34L20 28L28 28L32 20Z" stroke="#D4AF37" stroke-width="1.5" fill="none"/>
-                        </svg>
-                    </div>
+                <div class="fade-in-up text-center process-stage">
+                    <svg class="mx-auto mb-6" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="32" cy="32" r="24" stroke="#D4AF37" stroke-width="2" fill="none" opacity="0.6"/>
+                        <path d="M32 16 L 35 26 L 45 26 L 37 32 L 40 42 L 32 36 L 24 42 L 27 32 L 19 26 L 29 26 Z" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                    </svg>
                     <h3 class="font-sans font-semibold text-xl mb-3">Awakening</h3>
                     <p class="font-sans text-sm opacity-70">Reconnecting with what matters. Clarity emerging.</p>
                 </div>
                 
                 <!-- Stage 3: Building -->
-                <div class="fade-in text-center process-arrow">
-                    <div class="mb-6 flex justify-center">
-                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="16" y="24" width="32" height="24" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                            <path d="M12 24L32 12L52 24" stroke="#D4AF37" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                            <rect x="26" y="32" width="12" height="16" fill="#D4AF37" opacity="0.6"/>
-                        </svg>
-                    </div>
+                <div class="fade-in-up text-center process-stage">
+                    <svg class="mx-auto mb-6" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 28 L 32 16 L 52 28" stroke="#D4AF37" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="16" y="28" width="32" height="20" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                        <rect x="26" y="34" width="12" height="14" fill="#D4AF37" opacity="0.6"/>
+                    </svg>
                     <h3 class="font-sans font-semibold text-xl mb-3">Building</h3>
                     <p class="font-sans text-sm opacity-70">Creating from passion. Shipping. Growing.</p>
                 </div>
                 
                 <!-- Stage 4: Freedom -->
-                <div class="fade-in text-center">
-                    <div class="mb-6 flex justify-center">
-                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="32" cy="32" r="28" stroke="#D4AF37" stroke-width="2.5" fill="none"/>
-                            <path d="M32 20V32L40 40" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
-                            <circle cx="32" cy="32" r="3" fill="#D4AF37"/>
-                        </svg>
-                    </div>
+                <div class="fade-in-up text-center process-stage">
+                    <svg class="mx-auto mb-6" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="32" cy="32" r="24" stroke="#D4AF37" stroke-width="2.5" fill="none"/>
+                        <path d="M32 20 L 32 32 L 42 42" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="32" cy="32" r="3" fill="#D4AF37"/>
+                    </svg>
                     <h3 class="font-sans font-semibold text-xl mb-3" style="color: #D4AF37;">Freedom</h3>
                     <p class="font-sans text-sm opacity-70">$1M revenue. Zero employees. Your time is yours.</p>
                 </div>
@@ -394,66 +438,69 @@
         </div>
     </section>
 
-    <!-- Social Proof with Dashboard Mockup -->
-    <section class="bg-warm-white py-24 md:py-30 px-6">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="font-serif text-3xl md:text-4xl mb-16 text-center fade-in max-w-xl mx-auto">The Resume You Can't Fake</h2>
+    <!-- Social Proof with Revenue Chart -->
+    <section class="bg-warm-white py-24 md:py-30 px-6 relative">
+        <div class="grid-pattern absolute inset-0 pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto relative z-10">
+            <h2 class="font-serif text-3xl md:text-4xl mb-16 text-center text-black fade-in-up max-w-xl mx-auto">The Resume You Can't Fake</h2>
             
-            <!-- Revenue Dashboard Mockup -->
-            <div class="dashboard-mockup mb-16 fade-in">
-                <div class="grid grid-cols-3 gap-8 mb-8">
-                    <div>
-                        <p class="font-sans text-xs uppercase tracking-wider mb-2" style="color: #D4AF37; opacity: 0.7;">Annual Revenue</p>
-                        <p class="font-sans text-3xl font-semibold text-warm-white">$1.2M</p>
-                    </div>
-                    <div>
-                        <p class="font-sans text-xs uppercase tracking-wider mb-2" style="color: #D4AF37; opacity: 0.7;">Employees</p>
-                        <p class="font-sans text-3xl font-semibold text-warm-white">0</p>
-                    </div>
-                    <div>
-                        <p class="font-sans text-xs uppercase tracking-wider mb-2" style="color: #D4AF37; opacity: 0.7;">Products Shipped</p>
-                        <p class="font-sans text-3xl font-semibold text-warm-white">12</p>
-                    </div>
+            <!-- Revenue Growth Chart -->
+            <div class="mb-16 fade-in-up">
+                <svg class="mx-auto" width="100%" height="240" viewBox="0 0 800 240" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Grid background -->
+                    <line x1="100" y1="40" x2="100" y2="200" stroke="#BC8B5F" stroke-width="1" opacity="0.1"/>
+                    <line x1="250" y1="40" x2="250" y2="200" stroke="#BC8B5F" stroke-width="1" opacity="0.1"/>
+                    <line x1="400" y1="40" x2="400" y2="200" stroke="#BC8B5F" stroke-width="1" opacity="0.1"/>
+                    <line x1="550" y1="40" x2="550" y2="200" stroke="#BC8B5F" stroke-width="1" opacity="0.1"/>
+                    <line x1="700" y1="40" x2="700" y2="200" stroke="#BC8B5F" stroke-width="1" opacity="0.1"/>
+                    
+                    <!-- Revenue growth line -->
+                    <defs>
+                        <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#BC8B5F;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#D4AF37;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#D4AF37;stop-opacity:0.15" />
+                            <stop offset="100%" style="stop-color:#D4AF37;stop-opacity:0" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Area under curve -->
+                    <path class="chart-area" d="M 100 180 L 250 160 L 400 130 L 550 90 L 700 50 L 700 200 L 100 200 Z" fill="url(#areaGradient)"/>
+                    
+                    <!-- Main line -->
+                    <path class="chart-line" id="revenue-line" d="M 100 180 L 250 160 L 400 130 L 550 90 L 700 50" stroke="url(#revenueGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    
+                    <!-- Data points -->
+                    <circle cx="100" cy="180" r="4" fill="#BC8B5F"/>
+                    <circle cx="250" cy="160" r="4" fill="#BC8B5F"/>
+                    <circle cx="400" cy="130" r="4" fill="#D4AF37"/>
+                    <circle cx="550" cy="90" r="4" fill="#D4AF37"/>
+                    <circle cx="700" cy="50" r="5" fill="#D4AF37"/>
+                    
+                    <!-- Labels -->
+                    <text x="100" y="220" font-family="Inter" font-size="12" fill="#000000" opacity="0.4" text-anchor="middle">Year 1</text>
+                    <text x="250" y="220" font-family="Inter" font-size="12" fill="#000000" opacity="0.4" text-anchor="middle">Year 2</text>
+                    <text x="400" y="220" font-family="Inter" font-size="12" fill="#000000" opacity="0.4" text-anchor="middle">Year 3</text>
+                    <text x="550" y="220" font-family="Inter" font-size="12" fill="#000000" opacity="0.4" text-anchor="middle">Year 4</text>
+                    <text x="700" y="220" font-family="Inter" font-size="12" fill="#000000" opacity="0.4" text-anchor="middle">Now</text>
+                </svg>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 mb-12 fade-in-up text-center">
+                <div>
+                    <p class="font-sans text-base text-black opacity-60">Built billion-dollar companies</p>
                 </div>
-                
-                <div class="space-y-4">
-                    <div>
-                        <div class="flex justify-between mb-2">
-                            <span class="font-sans text-sm text-warm-white opacity-70">Digital Products</span>
-                            <span class="font-sans text-sm text-warm-white opacity-70">68%</span>
-                        </div>
-                        <div class="metric-bar" style="width: 68%;"></div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between mb-2">
-                            <span class="font-sans text-sm text-warm-white opacity-70">Consulting</span>
-                            <span class="font-sans text-sm text-warm-white opacity-70">24%</span>
-                        </div>
-                        <div class="metric-bar" style="width: 24%; animation-delay: 0.2s;"></div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between mb-2">
-                            <span class="font-sans text-sm text-warm-white opacity-70">Content</span>
-                            <span class="font-sans text-sm text-warm-white opacity-70">8%</span>
-                        </div>
-                        <div class="metric-bar" style="width: 8%; animation-delay: 0.4s;"></div>
-                    </div>
+                <div>
+                    <p class="font-sans text-base text-black opacity-60">Lost $5M, rebuilt from scratch</p>
+                </div>
+                <div>
+                    <p class="font-sans text-base text-black opacity-60">$1M revenue, zero employees</p>
                 </div>
             </div>
             
-            <div class="grid md:grid-cols-3 gap-8 mb-12 fade-in text-center">
-                <div>
-                    <p class="font-sans text-base opacity-60">Built billion-dollar companies</p>
-                </div>
-                <div>
-                    <p class="font-sans text-base opacity-60">Lost $5M, rebuilt from scratch</p>
-                </div>
-                <div>
-                    <p class="font-sans text-base opacity-60">$1M revenue, zero employees</p>
-                </div>
-            </div>
-            
-            <p class="font-serif text-lg md:text-xl text-center max-w-2xl mx-auto fade-in" style="line-height: 1.7;">
+            <p class="font-serif text-lg md:text-xl text-center text-black max-w-2xl mx-auto fade-in-up" style="line-height: 1.7;">
                 I don't teach theory. I teach what I've lived through. Every strategy in this blueprint comes from years of building, losing, and building again. That's the difference.
             </p>
         </div>
@@ -462,18 +509,18 @@
     <!-- Pricing / CTA -->
     <section class="bg-black text-warm-white py-30 md:py-40 px-6">
         <div class="max-w-2xl mx-auto text-center">
-            <div class="text-7xl md:text-8xl font-serif mb-6 fade-in" style="color: #D4AF37;">$49</div>
+            <div class="text-7xl md:text-8xl font-serif mb-6 fade-in-up" style="color: #D4AF37;">$49</div>
             
-            <p class="font-sans text-lg mb-12 fade-in" style="opacity: 0.4;">
+            <p class="font-sans text-lg mb-12 fade-in-up" style="opacity: 0.4;">
                 One payment. Instant access. 13 chapters.<br>
                 Philosophy + System + Proof.
             </p>
             
-            <button id="checkout-button-pricing" class="cta-button cta-gold inline-block font-sans font-semibold px-10 py-5 rounded-lg text-xl cursor-pointer border-none mb-6 fade-in" style="background: #D4AF37; color: #000000;">
+            <button id="checkout-button-pricing" class="cta-button cta-button-gold inline-block font-sans font-semibold px-10 py-5 rounded-lg text-xl cursor-pointer border-none mb-6 fade-in-up">
                 Get The Blueprint
             </button>
             
-            <p class="font-sans text-base fade-in" style="opacity: 0.6;">
+            <p class="font-sans text-base fade-in-up" style="opacity: 0.6;">
                 No upsells. No subscriptions. Just the operating system<br class="hidden md:block">
                 for building a business that reflects who you actually are.
             </p>
@@ -484,8 +531,8 @@
     <section class="bg-warm-white py-16 px-6">
         <div class="max-w-3xl mx-auto">
             <details class="bg-white rounded-lg p-8 shadow-sm">
-                <summary class="text-2xl font-sans font-semibold cursor-pointer">Full Chapter Breakdown</summary>
-                <div class="mt-8 space-y-4 font-sans text-base" style="line-height: 1.6;">
+                <summary class="text-2xl font-sans font-semibold cursor-pointer text-black">Full Chapter Breakdown</summary>
+                <div class="mt-8 space-y-4 font-sans text-base text-black" style="line-height: 1.6;">
                     <p class="font-semibold">Part 1: The Philosophy (Why)</p>
                     <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
                         <li>Chapter 1: The Autopilot Trap</li>
@@ -518,21 +565,28 @@
     <!-- Final CTA -->
     <section class="bg-black text-warm-white py-20 md:py-30 px-6">
         <div class="max-w-2xl mx-auto text-center">
-            <h2 class="font-serif text-4xl md:text-5xl mb-8 fade-in">
+            <h2 class="font-serif text-4xl md:text-5xl mb-8 fade-in-up">
                 Your story isn't over.
             </h2>
-            <p class="font-sans text-lg md:text-xl mb-12 fade-in" style="line-height: 1.6; opacity: 0.9;">
+            <p class="font-sans text-lg md:text-xl mb-12 fade-in-up" style="line-height: 1.6; opacity: 0.9;">
                 Whether you're starting over, stuck on autopilot, or ready to build something that actually reflects who you are — this is the blueprint.
             </p>
-            <button id="checkout-button-final" class="cta-button inline-block bg-warm-white text-black font-sans font-semibold px-10 py-5 rounded-lg text-lg hover:bg-opacity-90 transition shadow-xl cursor-pointer border-none fade-in">
+            <button id="checkout-button-final" class="cta-button cta-button-white inline-block font-sans font-semibold px-10 py-5 rounded-lg text-lg cursor-pointer border-none fade-in-up">
                 Start rebuilding — $49
             </button>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-black text-warm-white py-12 px-6">
-        <div class="max-w-4xl mx-auto text-center">
+    <footer class="bg-black text-warm-white py-12 px-6 relative">
+        <!-- Footer signature mark -->
+        <svg class="absolute bottom-8 right-8 opacity-20" width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="60" r="30" stroke="#D4AF37" stroke-width="2" fill="none"/>
+            <circle cx="80" cy="60" r="30" stroke="#D4AF37" stroke-width="2" fill="none"/>
+            <path d="M 40 30 L 60 15 L 80 30" stroke="#D4AF37" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        
+        <div class="max-w-4xl mx-auto text-center relative z-10">
             <p class="font-sans text-sm mb-3" style="opacity: 0.4;">
                 Beck Miller is a pseudonym. The experiences are real.
             </p>
@@ -578,26 +632,218 @@
                 }
             });
         });
+    </script>
+
+    <!-- Three.js Hero Scene -->
+    <script>
+        // Check for reduced motion preference
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         
-        // Scroll Animation (Intersection Observer)
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+        if (!prefersReducedMotion && typeof THREE !== 'undefined') {
+            const canvas = document.getElementById('hero-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            
+            // Camera position
+            camera.position.z = 5;
+            camera.position.y = 1;
+            camera.lookAt(0, 0, 0);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xD4AF37, 1.2);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+            
+            // Create transformation ribbons
+            const ribbonGroup = new THREE.Group();
+            
+            // Ribbon geometry
+            for (let i = 0; i < 5; i++) {
+                const points = [];
+                const segments = 40;
+                for (let j = 0; j <= segments; j++) {
+                    const t = j / segments;
+                    const x = (Math.sin(t * Math.PI * 2 + i * 0.8) * 0.5) - 1 + (i * 0.4);
+                    const y = t * 4 - 2;
+                    const z = Math.cos(t * Math.PI * 2 + i * 0.8) * 0.3;
+                    points.push(new THREE.Vector3(x, y, z));
+                }
+                
+                const curve = new THREE.CatmullRomCurve3(points);
+                const tubeGeometry = new THREE.TubeGeometry(curve, segments, 0.08, 8, false);
+                
+                // Gradient material (cognac to gold)
+                const material = new THREE.MeshPhongMaterial({
+                    color: i < 2 ? 0xBC8B5F : 0xD4AF37,
+                    emissive: i < 2 ? 0x8B4513 : 0xD4AF37,
+                    emissiveIntensity: 0.2,
+                    shininess: 60,
+                    transparent: true,
+                    opacity: 0.85
+                });
+                
+                const ribbon = new THREE.Mesh(tubeGeometry, material);
+                ribbon.userData.initialY = ribbon.position.y;
+                ribbon.userData.animationOffset = i * 0.3;
+                ribbonGroup.add(ribbon);
+            }
+            
+            scene.add(ribbonGroup);
+            
+            // Particle system
+            const particleCount = 100;
+            const particleGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            const particleColors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount; i++) {
+                particlePositions[i * 3] = (Math.random() - 0.5) * 4;
+                particlePositions[i * 3 + 1] = Math.random() * 4 - 2;
+                particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 2;
+                
+                // Color gradient (cognac to gold)
+                const colorMix = particlePositions[i * 3 + 1] / 4 + 0.5;
+                const cognac = { r: 0.74, g: 0.55, b: 0.37 };
+                const gold = { r: 0.83, g: 0.69, b: 0.22 };
+                
+                particleColors[i * 3] = cognac.r + (gold.r - cognac.r) * colorMix;
+                particleColors[i * 3 + 1] = cognac.g + (gold.g - cognac.g) * colorMix;
+                particleColors[i * 3 + 2] = cognac.b + (gold.b - cognac.b) * colorMix;
+            }
+            
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+            
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.05,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+            
+            // Animation
+            let time = 0;
+            function animate() {
+                requestAnimationFrame(animate);
+                time += 0.01;
+                
+                // Rotate ribbon group slowly
+                ribbonGroup.rotation.y = time * 0.1;
+                
+                // Animate particles upward
+                const positions = particles.geometry.attributes.position.array;
+                for (let i = 0; i < particleCount; i++) {
+                    positions[i * 3 + 1] += 0.01;
+                    if (positions[i * 3 + 1] > 2) {
+                        positions[i * 3 + 1] = -2;
+                    }
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            // Handle resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            // Entrance animation with GSAP
+            gsap.from(ribbonGroup.position, {
+                y: -3,
+                duration: 2.5,
+                ease: 'expo.out'
+            });
+            
+            gsap.from(ribbonGroup.rotation, {
+                x: Math.PI / 4,
+                duration: 2.5,
+                ease: 'expo.out'
+            });
+        }
+    </script>
+
+    <!-- GSAP Scroll Animations -->
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
         
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
+        // Check for reduced motion
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        if (!prefersReducedMotion) {
+            // Hero entrance sequence
+            const heroTimeline = gsap.timeline({ delay: 0.5 });
+            heroTimeline
+                .to('.fade-in-up', {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    stagger: 0.15,
+                    ease: 'cubic-bezier(0.33, 1, 0.68, 1)'
+                });
+            
+            // Scroll-triggered reveals
+            gsap.utils.toArray('.fade-in-up').forEach((element, index) => {
+                if (!element.closest('.hero-content')) {
+                    gsap.from(element, {
+                        scrollTrigger: {
+                            trigger: element,
+                            start: 'top 80%',
+                            toggleActions: 'play none none none'
+                        },
+                        opacity: 0,
+                        y: 30,
+                        duration: 0.8,
+                        ease: 'cubic-bezier(0.33, 1, 0.68, 1)'
+                    });
                 }
             });
-        }, observerOptions);
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.fade-in').forEach(el => {
-                observer.observe(el);
+            
+            // Transform icons scale in
+            gsap.utils.toArray('.transform-icon').forEach(icon => {
+                gsap.from(icon, {
+                    scrollTrigger: {
+                        trigger: icon,
+                        start: 'top 85%',
+                        toggleActions: 'play none none none'
+                    },
+                    scale: 0.8,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'back.out(1.4)'
+                });
             });
-        });
+            
+            // Revenue chart line animation
+            gsap.to('#revenue-line', {
+                scrollTrigger: {
+                    trigger: '#revenue-line',
+                    start: 'top 80%',
+                    toggleActions: 'play none none none'
+                },
+                strokeDashoffset: 0,
+                duration: 1.5,
+                ease: 'cubic-bezier(0.65, 0, 0.35, 1)'
+            });
+        } else {
+            // Simple fade-in for reduced motion
+            gsap.set('.fade-in-up, .scale-in, .fade-in', { opacity: 1, y: 0, scale: 1 });
+        }
     </script>
 
 </body>
